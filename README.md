@@ -1,123 +1,147 @@
-#  On-Chain Fantasy Sports Marketplace (Stellar Soroban)
+# ⚽ Stellar Fantasy League
 
-Welcome to the future of decentralized fantasy sports! This project is a **fully on-chain fantasy sports marketplace** built on the high-performance **Stellar network** using **Soroban smart contracts**.
+**A fully on-chain fantasy sports contest platform built on Stellar Soroban.**
 
-By utilizing Stellar's ultra-low fees, sub-second consensus times, and Soroban's robust Rust-based smart contract environment, this platform enables completely transparent, trustless, and decentralized fantasy contest creation, entry fee collection, and reward distribution.
-
----
-
-##  Project Overview
-
-The core of this marketplace is a secure, warning-free, and thoroughly tested Soroban smart contract written in Rust. It serves as a decentralized game master that:
-1. **Creates Contests**: Managers/creators can spin up fantasy contests with specific entry fees, token assets (e.g., USDC, XLM wrapped tokens), and descriptive metadata.
-2. **Collects Entry Fees**: Players join contests trustlessly. The contract pulls entry fees from the players' accounts and holds them securely in its own address as an escrow prize pool.
-3. **Declares Winners & Distributes Rewards**: Once the real-world sports events finish, the creator submits the winner. The smart contract immediately transfers the entire prize pool escrow directly to the winner's Stellar wallet address.
+Live dApp → [stellar-fantasy-league.vercel.app](https://stellar-fantasy-league.vercel.app) *(after deployment)*
 
 ---
 
-## 📁 Repository Structure
+## What It Does
 
-The project follows a standard Soroban workspace layout:
+Stellar Fantasy League lets anyone create and participate in trustless fantasy sports contests where entry fees and prize payouts are handled entirely by a Soroban smart contract — no middleman, no manual payouts, fully verifiable on-chain.
 
-```text
-dream11/
-├── Cargo.toml                        # Workspace cargo configuration
-├── README.md                         # Project documentation and developer guide
-└── contracts/
-    └── fantasy_sports/
-        ├── Cargo.toml                # Smart contract cargo dependencies
-        └── src/
-            ├── lib.rs                # Core smart contract code
-            └── test.rs               # Complete test suite (100% pass)
+| Flow | Who | What Happens |
+|---|---|---|
+| `create_contest` | Contest creator | Sets entry fee, prize split, max players |
+| `join_contest` | Any player | Pays entry fee; contract holds escrow |
+| `declare_winners` | Creator only | Distributes prize pool to 1/2/3 winners per split |
+| `cancel_contest` | Creator only | Cancels contest, refunds all participants |
+| `get_contest` | Anyone | Read-only view of contest + participants |
+
+---
+
+## Key Features
+
+- **Multi-winner prize splits** — configure 60/30/10 or any split summing to 100%
+- **Cancel & refund** — full participant refunds if the contest is cancelled
+- **Max participants cap** — limit contest size (0 = unlimited)
+- **Duplicate entry protection** — one join per address enforced on-chain
+- **XLM native** — uses Stellar's native token via the Stellar Asset Contract (SAC)
+- **Frontend dApp** — React + TypeScript, Lobstr/Freighter wallet support
+- **Dual deployment** — testnet + mainnet contracts
+
+---
+
+## Repository Structure
+
+```
+stellar-fantasy-league/
+├── contracts/
+│   └── fantasy_sports/
+│       └── src/
+│           ├── lib.rs        # Soroban smart contract
+│           └── test.rs       # 8 tests, 100% passing
+├── frontend/                 # React + TypeScript dApp
+│   ├── src/
+│   │   ├── contract.ts       # Contract interaction (build/submit transactions)
+│   │   ├── wallet.ts         # Wallet connection hook
+│   │   ├── App.tsx           # Root component
+│   │   └── components/
+│   │       └── ContestPanel.tsx
+│   ├── vercel.json
+│   └── .env.example
+├── scripts/
+│   ├── deploy-testnet.sh
+│   └── deploy-mainnet.sh
+└── Cargo.toml
 ```
 
 ---
 
-## 🛠️ Smart Contract Architecture
+## Getting Started
 
-The contract implements four fundamental functions:
+### Prerequisites
+- Rust + `wasm32-unknown-unknown` target
+- Node.js v18+
+- [Stellar CLI](https://developers.stellar.org/docs/tools/cli/install-cli)
 
-| Function | Access | Description |
-|---|---|---|
-| `create_contest` | **Creator Signature Required** | Initializes a new contest by defining its unique ID, entry fee, details, and the token used. |
-| `join_contest` | **Participant Signature Required** | Escrows the entry fee from the participant into the contract and adds it to the contest's prize pool. |
-| `declare_winner` | **Creator Signature Required** | Resolves the contest by validating the winner and distributing 100% of the escrowed pool to their address. |
-| `get_contest` | **Public Getter** | Returns the current state (prize pool, participants, status) of any contest. |
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install --locked stellar-cli --features opt
+```
 
----
+### Run Tests
 
-## 💻 Developer & Contribution Guide
-
-### 1. Prerequisites
-Ensure you have the following installed on your machine:
-* [Rust & Cargo](https://rustup.rs/) (v1.75+)
-* Target WASM build chain:
-  ```bash
-  rustup target add wasm32-unknown-unknown
-  ```
-* [Stellar CLI](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup#install-the-stellar-cli) (formerly Soroban CLI):
-  ```bash
-  cargo install --locked stellar-cli --features opt
-  ```
-
-### 2. Running Tests
-The smart contract includes a comprehensive test suite in `contracts/fantasy_sports/src/test.rs` which compiles cleanly and tests full flows, edge cases, and safety checks.
-
-Run the tests using Cargo:
 ```bash
 cargo test
 ```
 
-### 3. Compiling to WebAssembly (WASM)
-To compile the contract into optimized, deployable WebAssembly byte code:
+### Build WASM
+
 ```bash
 cargo build --target wasm32-unknown-unknown --release
 ```
-The compiled contract will be saved at:
-`target/wasm32-unknown-unknown/release/fantasy_sports.wasm`
 
-### 4. Deploying to Stellar Testnet
+### Deploy
 
-First, configure your Stellar CLI testnet identity:
 ```bash
-stellar keys generate --network testnet alice
+# Testnet (free)
+bash scripts/deploy-testnet.sh alice
+
+# Mainnet (requires real XLM)
+bash scripts/deploy-mainnet.sh alice
 ```
 
-Deploy the compiled WASM file:
-```bash
-stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/fantasy_sports.wasm \
-  --source alice \
-  --network testnet
-```
-This will return a **Contract ID** (e.g., `CD...`). Save this address!
+Each script prints the contract ID and XLM SAC address to add to the frontend env.
 
-### 5. Invoking the Contract
+### Run Frontend Locally
 
-To create a contest via CLI:
 ```bash
-stellar contract invoke \
-  --id <YOUR_CONTRACT_ID> \
-  --source alice \
-  --network testnet \
-  -- \
-  create_contest \
-  --contest_id 1 \
-  --creator alice \
-  --token <USDC_TOKEN_ADDRESS> \
-  --entry_fee 10000000 \
-  --details "Match-Week-1-Premier-League"
+cp frontend/.env.example frontend/.env.local
+# fill in contract IDs from deployment output
+cd frontend && npm install && npm run dev
 ```
+
+### Deploy to Vercel
+
+1. Push repo to GitHub
+2. Import project in [vercel.com](https://vercel.com)
+3. Set environment variables from `.env.local`
+4. Deploy — Vercel auto-detects Vite
 
 ---
 
-## 🤝 Contributing
+## Open Issues (Good for Contributors)
 
-We are building the premier decentralized home for fantasy sports and we would love your help!
+See the [Issues tab](../../issues) for open tasks including:
 
-If you want to contribute:
-1. **Fork the repo** and create a feature branch.
-2. Check our open issues for planned improvements (e.g., multi-winner prize splits, team roster locking, decentralized oracle integration).
-3. Open a **Pull Request** detailing your changes.
+- **Good first:** Add loading skeleton UI components
+- **Good first:** Write E2E tests with Playwright
+- **Medium:** USDC token support alongside XLM
+- **Medium:** Contest history page (read from Horizon events)
+- **Hard:** Decentralized sports score oracle integration
+- **Hard:** Multi-sig winner declaration (2-of-3 creator votes)
 
-Let's make fantasy sports transparent and fun together! ⚽🏀🏏
+---
+
+## Contributing
+
+1. Fork the repo and create a feature branch
+2. For contract changes, run `cargo test` before opening a PR
+3. For frontend changes, run `npm run build` before opening a PR
+4. Open a PR with a clear description of what you changed and why
+
+---
+
+## Deployments
+
+| Network | Contract ID |
+|---|---|
+| Testnet | *(set after deploy)* |
+| Mainnet | *(set after deploy)* |
+
+---
+
+## License
+
+MIT
