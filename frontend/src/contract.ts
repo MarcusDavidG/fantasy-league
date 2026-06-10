@@ -123,7 +123,7 @@ export async function getContest(
     .addOperation(
       contract.call("get_contest", nativeToScVal(contestId, { type: "u64" }))
     )
-    .setTimeout(30)
+    .setTimeout(300)
     .build();
 
   const sim = await server.simulateTransaction(tx);
@@ -150,7 +150,7 @@ async function buildAndAssemble(
     networkPassphrase,
   })
     .addOperation(operation)
-    .setTimeout(30)
+    .setTimeout(300)
     .build();
 
   const sim = await server.simulateTransaction(tx);
