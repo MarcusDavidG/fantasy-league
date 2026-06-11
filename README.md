@@ -1,16 +1,38 @@
 # ⚽ Stellar Fantasy League
 
-**A fully on-chain fantasy sports contest platform built on Stellar Soroban.**
+**A trustless, fully on-chain fantasy sports contest platform built on Stellar Soroban.**
 
 Live dApp → [stellar-fantasy-league.vercel.app](https://stellar-fantasy-league.vercel.app) *(after deployment)*
 
 ---
 
-## What It Does
+## The Problem
 
-Stellar Fantasy League lets anyone create and participate in trustless fantasy sports contests where entry fees and prize payouts are handled entirely by a Soroban smart contract — no middleman, no manual payouts, fully verifiable on-chain.
+Every fantasy sports league — whether on a platform like DraftKings or in a WhatsApp group — has the same problem: **someone holds the money**. That means payouts can be delayed, disputed, or never happen at all.
 
-| Flow | Who | What Happens |
+## The Solution
+
+Stellar Fantasy League replaces the middleman with a smart contract. Entry fees go directly into escrow on-chain. When the contest ends, the contract pays out winners instantly and automatically. If a contest is cancelled, everyone gets a full refund — no questions asked, no waiting.
+
+> **"Run fantasy sports leagues where the rules are enforced by code, not people."**
+
+---
+
+## Most Popular Use Case
+
+A group of friends each put in 5 XLM for a Champions League matchweek. The organizer creates a contest, everyone joins by paying the entry fee, the contract holds the pool. After the matches, the organizer declares the top 3 — the contract instantly splits 60/30/10 to winners. No one chases anyone for money. No disputes. Fully verifiable on-chain.
+
+This works for:
+- **Friend group football/soccer prediction leagues**
+- **Office Premier League sweepstakes**
+- **FIFA World Cup tournament brackets**
+- **NBA/NFL weekly pick'em pools**
+
+---
+
+## How It Works
+
+| Function | Who | What Happens |
 |---|---|---|
 | `create_contest` | Contest creator | Sets entry fee, prize split, max players |
 | `join_contest` | Any player | Pays entry fee; contract holds escrow |
@@ -22,12 +44,15 @@ Stellar Fantasy League lets anyone create and participate in trustless fantasy s
 
 ## Key Features
 
+- **Trustless escrow** — contract holds all funds, no one can run off with the pot
+- **Instant payouts** — winners receive funds the moment they're declared
 - **Multi-winner prize splits** — configure 60/30/10 or any split summing to 100%
-- **Cancel & refund** — full participant refunds if the contest is cancelled
+- **Cancel & full refund** — every participant gets their entry fee back if cancelled
 - **Max participants cap** — limit contest size (0 = unlimited)
 - **Duplicate entry protection** — one join per address enforced on-chain
+- **Low fees** — Stellar transactions cost fractions of a cent
 - **XLM native** — uses Stellar's native token via the Stellar Asset Contract (SAC)
-- **Frontend dApp** — React + TypeScript, Lobstr/Freighter wallet support
+- **Freighter/Lobstr wallet support** — connect with popular Stellar wallets
 - **Dual deployment** — testnet + mainnet contracts
 
 ---
@@ -53,6 +78,7 @@ stellar-fantasy-league/
 ├── scripts/
 │   ├── deploy-testnet.sh
 │   └── deploy-mainnet.sh
+├── ROADMAP.md
 └── Cargo.toml
 ```
 
@@ -63,11 +89,11 @@ stellar-fantasy-league/
 ### Prerequisites
 - Rust + `wasm32-unknown-unknown` target
 - Node.js v18+
-- [Stellar CLI](https://developers.stellar.org/docs/tools/cli/install-cli)
+- [Stellar CLI v26+](https://developers.stellar.org/docs/tools/cli/install-cli)
 
 ```bash
 rustup target add wasm32-unknown-unknown
-cargo install --locked stellar-cli --features opt
+cargo install --locked stellar-cli
 ```
 
 ### Run Tests
@@ -92,7 +118,7 @@ bash scripts/deploy-testnet.sh alice
 bash scripts/deploy-mainnet.sh alice
 ```
 
-Each script prints the contract ID and XLM SAC address to add to the frontend env.
+Each script prints the contract ID and XLM SAC address to add to your frontend env.
 
 ### Run Frontend Locally
 
@@ -105,15 +131,22 @@ cd frontend && npm install && npm run dev
 ### Deploy to Vercel
 
 1. Push repo to GitHub
-2. Import project in [vercel.com](https://vercel.com)
+2. Import project at [vercel.com](https://vercel.com)
 3. Set environment variables from `.env.local`
 4. Deploy — Vercel auto-detects Vite
 
 ---
 
-## Open Issues (Good for Contributors)
+## Deployments
 
-See the [Issues tab](../../issues) for open tasks including:
+| Network | Contract ID |
+|---|---|
+| Testnet | `CDLDKWJMCJZQD77MWQBRISKKSJPZO6B623UVNQRYB2EX6YZ3SDC4TKF3` |
+| Mainnet | *(set after deploy)* |
+
+---
+
+## Open Issues (Good for Contributors)
 
 - **Good first:** Add loading skeleton UI components
 - **Good first:** Write E2E tests with Playwright
@@ -130,15 +163,6 @@ See the [Issues tab](../../issues) for open tasks including:
 2. For contract changes, run `cargo test` before opening a PR
 3. For frontend changes, run `npm run build` before opening a PR
 4. Open a PR with a clear description of what you changed and why
-
----
-
-## Deployments
-
-| Network | Contract ID |
-|---|---|
-| Testnet | *(set after deploy)* |
-| Mainnet | *(set after deploy)* |
 
 ---
 
